@@ -1,5 +1,5 @@
 {
-    "name": "iexbase/tron-api",
+    "name": "aiwozhe/tron-api",
     "description": "A PHP API for interacting with Tron (Trx)",
     "license": "MIT",
     "type":   "library",
@@ -22,7 +22,7 @@
         "php": "^7.1",
         "guzzlehttp/guzzle": "^6.3",
         "kornrunner/secp256k1": "^0.1.2",
-        "sc0vu/web3.php": "^0.1.4",
+        "sc0vu/web3.php": "dev-master",
         "simplito/elliptic-php": "^1.0"
     },
 
