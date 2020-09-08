@@ -12,5 +12,6 @@ try {
 }
 
 
-$tron->setAddress('address');
-$balance = $tron->getBalance(null, true);
+//$tron->setAddress('TQj4Ac9QSWqFHN4y2GDqgSDzsyBJDPeK431');
+$balance = $tron->getBalance('41a1dcb0193b0cc9fd5667f88e4fae70eef9c9fd9a', true);
+var_dump($balance);
