@@ -1335,4 +1335,31 @@ class Tron implements TronInterface
             'value' =>  $token_id
         ]);
     }
+
+    /**
+     * Triggers a contract
+     *
+     * @param mixed $abi
+     * @param string $contract $tron->toHex('Txxxxx');
+     * @param string $function
+     * @param array $params array("0"=>$value);
+     * @param integer $feeLimit
+     * @param string $address $tron->toHex('Txxxxx');
+     * @param int $callValue
+     * @param int $bandwidthLimit
+     *
+     * @return mixed
+     * @throws TronException
+     */
+    public function triggerSmartContract($abi,
+                                         $contract,
+                                         $function,
+                                         $params,
+                                         $feeLimit,
+                                         $address,
+                                         $callValue = 0,
+                                         $bandwidthLimit = 0)
+    {
+        return $this->transactionBuilder->triggerSmartContract($abi, $contract, $function, $params, $feeLimit, $address, $callValue, $bandwidthLimit);
+    }
 }
