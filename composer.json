@@ -23,7 +23,7 @@
         "guzzlehttp/guzzle": "^6.3",
         "kornrunner/secp256k1": "^0.1.2",
         "sc0vu/web3.php": "dev-master",
-        "ionux/phactor": "1.0.8",
+        "aiwozhe/phactor": "^1.1",
         "simplito/elliptic-php": "^1.0"
     },
 
