@@ -1,128 +1,93 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: sunqingjiang
- * Date: 2020/9/8
- * Time: 7:39 下午
- */
-
 namespace IEXBase\TronAPI;
 
-use Exception;
-use IEXBase\TronAPI\Support\Base58;
-use IEXBase\TronAPI\Support\Crypto;
-use IEXBase\TronAPI\Support\Hash;
-use IEXBase\TronAPI\Support\Keccak;
 use IEXBase\TronAPI\Exception\TronException;
-use Phactor\Key;
 
 class TronAddress
 {
     /**
-     * 生成地址
+     * Результаты генерации адресов
      *
-     * @return array
+     * @var array
+    */
+    protected $response = [];
+
+    /**
+     * Конструктор
+     * @param array $data
      * @throws TronException
      */
-    public static function generate()
+    public function __construct(array $data)
     {
-        $attempts = 0;
-        $validAddress = false;
+        $this->response = $data;
 
-        do {
-            if ($attempts++ === 5) {
-                throw new TronException('Could not generate valid key');
-            }
-
-            // 生成密钥对
-            $keyPair = self::generateKeyPair();
-            $privateKeyHex = $keyPair['private_key_hex'];
-            $pubKeyHex = $keyPair['public_key'];
-
-            //We cant use hex2bin unless the string length is even.
-            if (strlen($pubKeyHex) % 2 !== 0) {
-                continue;
-            }
-
-            $pubKeyBin = hex2bin($pubKeyHex);
-            $addressHex = self::getAddressHex($pubKeyBin);
-            $addressBin = hex2bin($addressHex);
-            $addressBase58 = self::getBase58CheckAddress($addressBin);
-
-            $validAddress = self::validateAddress($addressBase58);
-
-        } while (!$validAddress);
-
-        return [
-            'privateKey' => $privateKeyHex,
-            'address' => $addressBase58,
-            'hexAddress' => $addressHex
-        ];
+        // Проверяем ключи, перед выводом результатов
+        if(!$this->array_keys_exist($this->response, ['address_hex', 'private_key', 'public_key'])) {
+            throw new TronException('Incorrectly generated address');
+        }
     }
 
     /**
-     * 生成密钥对
+     * Получение адреса
+     *
+     * @param bool $is_base58
+     * @return string
+     */
+    public function getAddress(bool $is_base58 = false): string
+    {
+        return $this->response[($is_base58 == false) ? 'address_hex' : 'address_base58'];
+    }
+
+    /**
+     * Получение публичного ключа
+     *
+     * @return string
+     */
+    public function getPublicKey(): string
+    {
+        return $this->response['public_key'];
+    }
+
+    /**
+     * Получение приватного ключа
+     *
+     * @return string
+     */
+    public function getPrivateKey(): string
+    {
+        return $this->response['private_key'];
+    }
+
+    /**
+     * Получение результатов в массике
      *
      * @return array
-     */
-    private static function generateKeyPair(): array
+    */
+    public function getRawData(): array
     {
-        $key = new Key();
-
-        return $key->GenerateKeypair();
+        return $this->response;
     }
 
     /**
-     * 获取地址Hex
+     * Проверка нескольких ключей
      *
-     * @param string $pubKeyBin
-     * @return string
-     * @throws Exception
-     */
-    private static function getAddressHex(string $pubKeyBin): string
-    {
-        if (strlen($pubKeyBin) == 65) {
-            $pubKeyBin = substr($pubKeyBin, 1);
-        }
-
-        $hash = Keccak::hash($pubKeyBin, 256);
-
-        return Tron::ADDRESS_PREFIX . substr($hash, 24);
-    }
-
-    /**
-     * 获取base58
-     *
-     * @param string $addressBin
-     * @return string
-     */
-    private static function getBase58CheckAddress(string $addressBin): string
-    {
-        $hash0 = Hash::SHA256($addressBin);
-        $hash1 = Hash::SHA256($hash0);
-        $checksum = substr($hash1, 0, 4);
-        $checksum = $addressBin . $checksum;
-
-        return Base58::encode(Crypto::bin2bc($checksum));
-    }
-
-    /**
-     * 验证地址
-     *
-     * @param $address
+     * @param array $array
+     * @param array $keys
      * @return bool
-     * @throws TronException
      */
-    private static function validateAddress($address): bool
+    private function array_keys_exist(array $array, array $keys = []): bool
     {
-        $tron = new Tron();
-
-        if (!$tron->isAddress($address)) {
-            return false;
+        $count = 0;
+        if (!is_array($keys)) {
+            $keys = func_get_args();
+            array_shift($keys);
+        }
+        foreach ($keys as $key) {
+            if (isset( $array[$key]) || array_key_exists($key, $array)) {
+                $count ++;
+            }
         }
 
-        $result = $tron->validateAddress($address);
-
-        return $result['result'];
+        return count($keys) === $count;
     }
 }

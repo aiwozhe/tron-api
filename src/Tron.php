@@ -16,11 +16,17 @@ declare(strict_types=1);
 
 namespace IEXBase\TronAPI;
 
+use BN\BN;
+use Elliptic\EC;
+use IEXBase\TronAPI\Support\Base58;
 use IEXBase\TronAPI\Support\Base58Check;
+use IEXBase\TronAPI\Support\Crypto;
 use IEXBase\TronAPI\Support\Hash;
+use IEXBase\TronAPI\Support\Keccak;
 use IEXBase\TronAPI\Support\Utils;
 use IEXBase\TronAPI\Provider\HttpProviderInterface;
 use IEXBase\TronAPI\Exception\TronException;
+use kornrunner\Secp256k1;
 
 /**
  * A PHP API for interacting with the Tron (TRX)
@@ -76,13 +82,6 @@ class Tron implements TronInterface
      * @var TronManager
     */
     protected $manager;
-
-    /**
-     * Online sign
-     *
-     * @var boolean
-    */
-    protected $isOnlineSign = false;
 
     /**
      * Object Result
@@ -141,6 +140,15 @@ class Tron implements TronInterface
                                 ?HttpProviderInterface $signServer = null,
                                 string $privateKey = null) {
         return new static($fullNode, $solidityNode, $eventServer, $signServer, $privateKey);
+    }
+
+    /**
+     * Фасад для Laravel
+     *
+     * @return Tron
+    */
+    public function getFacade(): Tron {
+        return $this;
     }
 
     /**
@@ -233,18 +241,6 @@ class Tron implements TronInterface
     public function setPrivateKey(string $privateKey): void
     {
         $this->privateKey = $privateKey;
-    }
-
-    /**
-     * Set online sign
-     *
-     * @param bool $sign
-     * @return Tron
-     */
-    public function setIsOnlineSign(bool $sign): Tron
-    {
-        $this->isOnlineSign = $sign;
-        return $this;
     }
 
     /**
@@ -673,6 +669,7 @@ class Tron implements TronInterface
         $transaction = $this->transactionBuilder->sendTrx($to, $amount, $from);
         $signedTransaction = $this->signTransaction($transaction, $message);
 
+
         $response = $this->sendRawTransaction($signedTransaction);
         return array_merge($response, $signedTransaction);
     }
@@ -733,17 +730,8 @@ class Tron implements TronInterface
             $transaction['raw_data']['data'] = $this->stringUtf8toHex($message);
         }
 
-        // Online sign tx
-        if ($this->isOnlineSign == true)
-        {
-            return $this->manager->request('wallet/gettransactionsign', [
-                'transaction'   => $transaction,
-                'privateKey'    => $this->privateKey
-            ]);
-        }
 
         $signature = Support\Secp::sign($transaction['txID'], $this->privateKey);
-
         $transaction['signature'] = [$signature];
 
         return $transaction;
@@ -1201,7 +1189,10 @@ class Tron implements TronInterface
         $address = Base58Check::decode($address, 0, 0, false);
         $utf8 = hex2bin($address);
 
-        if (strlen($utf8) !== 25 or strpos($utf8, chr(self::ADDRESS_PREFIX_BYTE)) !== 0)
+        if(strlen($address) !== self::ADDRESS_SIZE)
+            return false;
+
+        if (strlen($utf8) !== 25 or strpos($utf8, self::ADDRESS_PREFIX_BYTE) !== 0)
             return false;
 
         $checkSum = substr($utf8, 21);
@@ -1290,23 +1281,61 @@ class Tron implements TronInterface
     /**
      * Create a new account
      *
-     * @return array
+     * @return TronAddress
      * @throws TronException
      */
-    public function createAccount(): array
+    public function createAccount(): TronAddress
     {
         return $this->generateAddress();
+    }
+
+    public function getAddressHex(string $pubKeyBin): string
+    {
+        if (strlen($pubKeyBin) == 65) {
+            $pubKeyBin = substr($pubKeyBin, 1);
+        }
+
+        $hash = Keccak::hash($pubKeyBin, 256);
+
+        return self::ADDRESS_PREFIX . substr($hash, 24);
+    }
+
+    public function getBase58CheckAddress(string $addressBin): string
+    {
+        $hash0 = Hash::SHA256($addressBin);
+        $hash1 = Hash::SHA256($hash0);
+        $checksum = substr($hash1, 0, 4);
+        $checksum = $addressBin . $checksum;
+
+        return Base58::encode(Crypto::bin2bc($checksum));
     }
 
     /**
      * Generate new address
      *
-     * @return array
+     * @return TronAddress
      * @throws TronException
      */
-    public function generateAddress(): array
+    public function generateAddress(): TronAddress
     {
-        return $this->manager->request('wallet/generateaddress');
+        $ec = new EC('secp256k1');
+
+        // Generate keys
+        $key = $ec->genKeyPair();
+        $priv = $ec->keyFromPrivate($key->priv);
+        $pubKeyHex = $priv->getPublic(false, "hex");
+
+        $pubKeyBin = hex2bin($pubKeyHex);
+        $addressHex = $this->getAddressHex($pubKeyBin);
+        $addressBin = hex2bin($addressHex);
+        $addressBase58 = $this->getBase58CheckAddress($addressBin);
+
+        return new TronAddress([
+            'private_key' => $priv->getPrivate('hex'),
+            'public_key'    => $pubKeyHex,
+            'address_hex' => $addressHex,
+            'address_base58' => $addressBase58
+        ]);
     }
 
     /**
