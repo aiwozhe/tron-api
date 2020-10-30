@@ -18,6 +18,7 @@ namespace IEXBase\TronAPI;
 
 use BN\BN;
 use Elliptic\EC;
+use Elliptic\EC\KeyPair;
 use IEXBase\TronAPI\Support\Base58;
 use IEXBase\TronAPI\Support\Base58Check;
 use IEXBase\TronAPI\Support\Crypto;
@@ -1318,12 +1319,52 @@ class Tron implements TronInterface
      */
     public function generateAddress(): TronAddress
     {
+        do {
+            $ec = new EC('secp256k1');
+
+            // Generate keys
+            $keyPair = $ec->genKeyPair();
+
+            $address = $this->generateAddressFromKeyPair($keyPair);
+
+            $converseAddress = $this->importAddress($address->getPrivateKey());
+        } while ($address->getAddress() != $converseAddress->getAddress());
+
+        return $address;
+    }
+
+    /**
+     * 通过私钥导入地址
+     *
+     * @param $privateKey
+     * @return TronAddress
+     * @throws TronException
+     */
+    public function importAddress($privateKey): TronAddress
+    {
+        if (strpos($privateKey, '0x')) {
+            $privateKey = str_replace('0x', '', $privateKey);
+        }
+
         $ec = new EC('secp256k1');
 
-        // Generate keys
-        $key = $ec->genKeyPair();
-        $priv = $ec->keyFromPrivate($key->priv);
-        $pubKeyHex = $priv->getPublic(false, "hex");
+        // 获取密钥对
+        $keyPair = KeyPair::fromPrivate($ec, $privateKey, 'hex');
+
+        return $this->generateAddressFromKeyPair($keyPair);
+    }
+
+    /**
+     * 根据Key Pair生成地址
+     *
+     * @param KeyPair $keyPair
+     * @return TronAddress
+     * @throws TronException
+     */
+    private function generateAddressFromKeyPair(KeyPair $keyPair): TronAddress
+    {
+
+        $pubKeyHex = $keyPair->getPublic(false, "hex");
 
         $pubKeyBin = hex2bin($pubKeyHex);
         $addressHex = $this->getAddressHex($pubKeyBin);
@@ -1331,7 +1372,7 @@ class Tron implements TronInterface
         $addressBase58 = $this->getBase58CheckAddress($addressBin);
 
         return new TronAddress([
-            'private_key' => $priv->getPrivate('hex'),
+            'private_key' => $keyPair->getPrivate('hex'),
             'public_key'    => $pubKeyHex,
             'address_hex' => $addressHex,
             'address_base58' => $addressBase58
