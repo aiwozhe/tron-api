@@ -7,6 +7,9 @@
  */
 include_once '../vendor/autoload.php';
 
-$address = \IEXBase\TronAPI\TronAddress::generate();
+//$address = \IEXBase\TronAPI\TronAddress::generate();
+//
+//var_dump($address);
 
-var_dump($address);
+$key = new \Phactor\Key();
+$key->decodeHex('');
