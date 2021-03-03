@@ -20,9 +20,9 @@
 
     "require": {
         "php": "^7.1",
-        "guzzlehttp/guzzle": "^7.0.1",
+        "guzzlehttp/guzzle": "^7.2",
         "kornrunner/secp256k1": "^0.1.2",
-        "aiwozhe/web3": "^1.0",
+        "aiwozhe/web3": "^2.0",
         "simplito/elliptic-php": "^1.0"
     },
 
