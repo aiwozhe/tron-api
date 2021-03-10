@@ -3,7 +3,7 @@ include_once '../vendor/autoload.php';
 
 use IEXBase\TronAPI\Tron;
 
-$tron = new Tron();
+$tron = new Tron('4f7f258a-326f-43dd-8286-a8a4edf4c6b6');
 $tron->setPrivateKey('...');
 
 

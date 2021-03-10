@@ -2,7 +2,7 @@
 include_once '../vendor/autoload.php';
 
 try {
-    $tron = new \IEXBase\TronAPI\Tron();
+    $tron = new \IEXBase\TronAPI\Tron('4f7f258a-326f-43dd-8286-a8a4edf4c6b6');
 
     $generateAddress = $tron->generateAddress(); // or createAddress()
     $isValid = $tron->isAddress($generateAddress->getAddress());

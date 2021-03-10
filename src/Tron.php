@@ -94,16 +94,17 @@ class Tron implements TronInterface
     /**
      * Create a new Tron object
      *
-     * @param HttpProviderInterface $fullNode
-     * @param HttpProviderInterface $solidityNode
+     * @param string $appKey
+     * @param HttpProviderInterface|null $fullNode
+     * @param HttpProviderInterface|null $solidityNode
      * @param HttpProviderInterface|null $eventServer
      * @param HttpProviderInterface|null $signServer
      * @param HttpProviderInterface|null $explorer
-     * @param string $privateKey
-
+     * @param string|null $privateKey
      * @throws TronException
      */
-    public function __construct(?HttpProviderInterface $fullNode = null,
+    public function __construct(string $appKey = '',
+                                ?HttpProviderInterface $fullNode = null,
                                 ?HttpProviderInterface $solidityNode = null,
                                 ?HttpProviderInterface $eventServer = null,
                                 ?HttpProviderInterface $signServer = null,
@@ -119,6 +120,9 @@ class Tron implements TronInterface
             'solidityNode'  =>  $solidityNode,
             'eventServer'   =>  $eventServer,
             'signServer'    =>  $signServer,
+            'explorer' => $explorer
+        ], [
+            'TRON-PRO-API-KEY' => $appKey
         ]));
 
         $this->transactionBuilder = new TransactionBuilder($this);
