@@ -94,6 +94,16 @@ class HttpProvider implements HttpProviderInterface
     }
 
     /**
+     * 追加Headers
+     *
+     * @param array $headers
+     */
+    public function appendHeaders($headers = []): void
+    {
+        $this->headers = array_merge($this->headers, $headers);
+    }
+
+    /**
      * Check connection
      *
      * @return bool

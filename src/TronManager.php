@@ -48,9 +48,10 @@ class TronManager
     /**
      * @param $tron
      * @param $providers
-     * @throws Exception\TronException
+     * @param array $headers
+     * @throws TronException
      */
-    public function __construct($tron, $providers)
+    public function __construct($tron, $providers, $headers = [])
     {
         $this->providers = $providers;
 
@@ -70,6 +71,7 @@ class TronManager
                 continue;
 
             $this->providers[$key]->setStatusPage($this->statusPage[$key]);
+            $this->providers[$key]->appendHeaders($headers);
         }
     }
 
