@@ -103,7 +103,7 @@ class Tron implements TronInterface
      * @param string|null $privateKey
      * @throws TronException
      */
-    public function __construct(string $apiKey = '',
+    public function __construct(string $apiKey,
                                 ?HttpProviderInterface $fullNode = null,
                                 ?HttpProviderInterface $solidityNode = null,
                                 ?HttpProviderInterface $eventServer = null,
