@@ -253,7 +253,7 @@ class TransactionBuilder
      * @return array
      * @throws TronException
      */
-    public function freezeBalance(float $amount = 0, int $duration = 3, string $resource = 'BANDWIDTH', string $address)
+    public function freezeBalance($address, float $amount = 0, int $duration = 3, string $resource = 'BANDWIDTH', string $receiverAddress = '')
     {
         if (!in_array($resource, ['BANDWIDTH', 'ENERGY'])) {
             throw new TronException('Invalid resource provided: Expected "BANDWIDTH" or "ENERGY"');
@@ -271,7 +271,8 @@ class TransactionBuilder
             'owner_address' => $this->tron->address2HexString($address),
             'frozen_balance' => $this->tron->toTron($amount),
             'frozen_duration' => $duration,
-            'resource' => $resource
+            'resource' => $resource,
+            'receiver_address' => $this->tron->address2HexString($receiverAddress)
         ]);
     }
 
@@ -284,7 +285,7 @@ class TransactionBuilder
      * @return array
      * @throws TronException
      */
-    public function unfreezeBalance(string $resource = 'BANDWIDTH', string $owner_address)
+    public function unfreezeBalance(string $owner_address, string $resource = 'BANDWIDTH', string $receiverAddress = '')
     {
         if (!in_array($resource, ['BANDWIDTH', 'ENERGY'])) {
             throw new TronException('Invalid resource provided: Expected "BANDWIDTH" or "ENERGY"');
@@ -292,7 +293,8 @@ class TransactionBuilder
 
         return $this->tron->getManager()->request('wallet/unfreezebalance', [
             'owner_address' =>  $this->tron->address2HexString($owner_address),
-            'resource' => $resource
+            'resource' => $resource,
+            'receiver_address' => $this->tron->address2HexString($receiverAddress)
         ]);
     }
 

@@ -938,13 +938,13 @@ class Tron implements TronInterface
      * @return array
      * @throws TronException
      */
-    public function freezeBalance(float $amount = 0, int $duration = 3, string $resource = 'BANDWIDTH', string $owner_address = null)
+    public function freezeBalance(string $owner_address, float $amount = 0, int $duration = 3, string $resource = 'BANDWIDTH', string $receiverAddress = '')
     {
         if($owner_address == null) {
             $owner_address = $this->address['hex'];
         }
 
-        $freeze = $this->transactionBuilder->freezeBalance($amount, $duration, $resource, $owner_address);
+        $freeze = $this->transactionBuilder->freezeBalance($owner_address, $amount, $duration, $resource, $receiverAddress);
         $signedTransaction = $this->signTransaction($freeze);
         $response = $this->sendRawTransaction($signedTransaction);
 
@@ -960,13 +960,13 @@ class Tron implements TronInterface
      * @return array
      * @throws TronException
      */
-    public function unfreezeBalance(string $resource = 'BANDWIDTH', string $owner_address = null)
+    public function unfreezeBalance(string $owner_address, string $resource = 'BANDWIDTH', string $receiverAddress = '')
     {
         if($owner_address == null) {
             $owner_address = $this->address['hex'];
         }
 
-        $unfreeze = $this->transactionBuilder->unfreezeBalance($resource, $owner_address);
+        $unfreeze = $this->transactionBuilder->unfreezeBalance($owner_address, $resource, $receiverAddress);
         $signedTransaction = $this->signTransaction($unfreeze);
         $response = $this->sendRawTransaction($signedTransaction);
 
