@@ -50,7 +50,7 @@ class Tron implements TronInterface
      * Default Address
      *
      * @var array
-    */
+     */
     public $address = [
         'base58'    =>  null,
         'hex'       =>  null
@@ -60,35 +60,35 @@ class Tron implements TronInterface
      * Private key
      *
      * @var string
-    */
+     */
     protected $privateKey;
 
     /**
      * Default block
      *
      * @var string|integer|bool
-    */
+     */
     protected $defaultBlock = 'latest';
 
     /**
      * Transaction Builder
      *
      * @var TransactionBuilder
-    */
+     */
     protected $transactionBuilder;
 
     /**
      * Provider manager
      *
      * @var TronManager
-    */
+     */
     protected $manager;
 
     /**
      * Object Result
      *
      * @var bool
-    */
+     */
     protected $isObject = false;
 
     /**
@@ -151,7 +151,7 @@ class Tron implements TronInterface
      * Фасад для Laravel
      *
      * @return Tron
-    */
+     */
     public function getFacade(): Tron {
         return $this;
     }
@@ -232,7 +232,7 @@ class Tron implements TronInterface
      * Get default block
      *
      * @return string|integer|bool
-    */
+     */
     public function getDefaultBlock()
     {
         return $this->defaultBlock;
@@ -268,7 +268,7 @@ class Tron implements TronInterface
      * Get account address
      *
      * @return array
-    */
+     */
     public function getAddress(): array
     {
         return $this->address;
@@ -938,13 +938,13 @@ class Tron implements TronInterface
      * @return array
      * @throws TronException
      */
-    public function freezeBalance(float $amount = 0, int $duration = 3, string $resource = 'BANDWIDTH', string $owner_address = null)
+    public function freezeBalance(string $owner_address, float $amount = 0, int $duration = 3, string $resource = 'BANDWIDTH', string $receiverAddress = '')
     {
         if($owner_address == null) {
             $owner_address = $this->address['hex'];
         }
 
-        $freeze = $this->transactionBuilder->freezeBalance($amount, $duration, $resource, $owner_address);
+        $freeze = $this->transactionBuilder->freezeBalance($owner_address, $amount, $duration, $resource, $receiverAddress);
         $signedTransaction = $this->signTransaction($freeze);
         $response = $this->sendRawTransaction($signedTransaction);
 
@@ -960,13 +960,13 @@ class Tron implements TronInterface
      * @return array
      * @throws TronException
      */
-    public function unfreezeBalance(string $resource = 'BANDWIDTH', string $owner_address = null)
+    public function unfreezeBalance(string $owner_address, string $resource = 'BANDWIDTH', string $receiverAddress = '')
     {
         if($owner_address == null) {
             $owner_address = $this->address['hex'];
         }
 
-        $unfreeze = $this->transactionBuilder->unfreezeBalance($resource, $owner_address);
+        $unfreeze = $this->transactionBuilder->unfreezeBalance($owner_address, $resource, $receiverAddress);
         $signedTransaction = $this->signTransaction($unfreeze);
         $response = $this->sendRawTransaction($signedTransaction);
 
@@ -1279,7 +1279,7 @@ class Tron implements TronInterface
         $address = (!is_null($address) ? $address : $this->address['hex']);
 
         return $this->manager->request('/wallet/getaccountresource', [
-           'address' =>  $this->toHex($address)
+            'address' =>  $this->toHex($address)
         ]);
     }
 
